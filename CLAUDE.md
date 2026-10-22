@@ -25,6 +25,7 @@ code or history: confirm or delete. `Hint:` is a working note for Claude.
 - Accepted gaps: no column on wrap continuation rows or on `~` rows below the end of the buffer.
 - The `~` area of unfocused padded windows is dimmed instead: window-local `winhighlight` `EndOfBuffer:SplitPadEob`, bg darkened by `eob_darken`. An existing `EndOfBuffer:` mapping in that window is left alone. (inferred: details)
 - Hint: the provider only runs on redraw; `refresh()` calls `nvim__redraw` on focus/layout events.
+- The focused split is never padded. The focused window is tracked on `WinEnter`, not read with `nvim_get_current_win()` while drawing. (inferred: cause of "focused split padded" bug, unconfirmed)
 
 ## Floating column (later)
 

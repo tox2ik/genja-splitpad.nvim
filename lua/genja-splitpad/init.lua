@@ -2,7 +2,7 @@
 -- Drawn with ephemeral extmarks from a decoration provider, so it is per window, not per buffer.
 local M = {}
 
-local SRC = 'plug-wip/genja-splitpad.nvim/lua/genja-splitpad/init.lua'
+local SRC = 'genja-splitpad/init.lua'
 local ns = vim.api.nvim_create_namespace('genja-splitpad')
 local group = vim.api.nvim_create_augroup('genja-splitpad', { clear = true })
 local EOB_ENTRY = 'EndOfBuffer:SplitPadEob'
@@ -19,13 +19,18 @@ local defaults = {
 	enabled = true,
 	min_width = 10,
 	exclude_ft = { 'oil', 'help' },
-	exclude_bt = { 'terminal', 'prompt', 'quickfix', 'help' },
+	exclude_bt = { 'prompt', 'quickfix', 'help' }, -- 'terminal', 
 	eob_darken = 0.85,
 }
 
 ---@type genja-splitpad.Opts
 local config = defaults
 local enabled = false
+
+-- The window the user is in, set on WinEnter. nvim_get_current_win() can't be trusted
+-- during a redraw: other plugins may temporarily switch to the window being drawn.
+---@type integer
+local focused = vim.api.nvim_get_current_win()
 
 -- Text columns to cover per window for the current redraw: filled in on_win, read in on_line.
 ---@type table<integer, integer[]>
@@ -78,7 +83,7 @@ end
 ---@param win integer
 ---@return boolean
 local function is_padded(win)
-	if not enabled or win == vim.api.nvim_get_current_win() then
+	if not enabled or win == focused then
 		return false
 	end
 	if not should_pad(win) then
@@ -230,6 +235,7 @@ end
 function M.setup(opts)
 	config = vim.tbl_extend('force', defaults, opts or {})
 	enabled = config.enabled
+	focused = vim.api.nvim_get_current_win()
 
 	set_highlights()
 
@@ -244,7 +250,23 @@ function M.setup(opts)
 		group = group,
 		callback = set_highlights,
 	})
-	vim.api.nvim_create_autocmd({ 'WinEnter', 'WinResized', 'VimResized', 'TabEnter', 'BufWinEnter', 'FileType' }, {
+	-- Redraw the window left and the window entered right away; the scheduled refresh can come too late.
+	vim.api.nvim_create_autocmd('WinEnter', {
+		group = group,
+		callback = function()
+			local prev = focused
+			focused = vim.api.nvim_get_current_win()
+			if not enabled then
+				return
+			end
+			if vim.api.nvim_win_is_valid(prev) then
+				vim.api.nvim__redraw({ win = prev, valid = false })
+			end
+			vim.api.nvim__redraw({ win = focused, valid = false })
+			schedule_refresh()
+		end,
+	})
+	vim.api.nvim_create_autocmd({ 'WinResized', 'VimResized', 'TabEnter', 'BufWinEnter', 'FileType' }, {
 		group = group,
 		callback = function()
 			if enabled then
