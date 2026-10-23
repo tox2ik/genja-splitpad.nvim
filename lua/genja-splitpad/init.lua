@@ -2,7 +2,7 @@
 -- Drawn with ephemeral extmarks from a decoration provider, so it is per window, not per buffer.
 local M = {}
 
-local SRC = 'genja-splitpad/init.lua'
+local SRC = 'genja-splitpad/init.lua: '
 local ns = vim.api.nvim_create_namespace('genja-splitpad')
 local group = vim.api.nvim_create_augroup('genja-splitpad', { clear = true })
 local EOB_ENTRY = 'EndOfBuffer:SplitPadEob'
@@ -228,7 +228,7 @@ function M.toggle()
 	else
 		clear_all()
 	end
-	vim.notify(SRC .. ': split padding ' .. state)
+	vim.notify(SRC .. 'split padding ' .. state)
 end
 
 ---@param opts? genja-splitpad.Opts
