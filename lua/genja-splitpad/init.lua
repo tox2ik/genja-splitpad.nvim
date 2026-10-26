@@ -19,7 +19,7 @@ local defaults = {
 	enabled = true,
 	min_width = 10,
 	exclude_ft = { 'oil', 'help' },
-	exclude_bt = { 'prompt', 'quickfix', 'help' }, -- 'terminal' left out on purpose? (inferred)
+	exclude_bt = { 'prompt', 'quickfix', 'help' }, -- terminals get padding too
 	eob_darken = 0.85,
 }
 
