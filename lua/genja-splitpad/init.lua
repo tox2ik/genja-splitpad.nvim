@@ -19,7 +19,7 @@ local defaults = {
 	enabled = true,
 	min_width = 10,
 	exclude_ft = { 'oil', 'help' },
-	exclude_bt = { 'prompt', 'quickfix', 'help' }, -- 'terminal', 
+	exclude_bt = { 'prompt', 'quickfix', 'help' }, -- 'terminal' left out on purpose? (inferred)
 	eob_darken = 0.85,
 }
 
@@ -83,13 +83,7 @@ end
 ---@param win integer
 ---@return boolean
 local function is_padded(win)
-	if not enabled or win == focused then
-		return false
-	end
-	if not should_pad(win) then
-		return false
-	end
-	return #pad_cols(win) > 0
+	return enabled and win ~= focused and should_pad(win) and #pad_cols(win) > 0
 end
 
 -- Decoration provider -------------------------------------------------------
@@ -167,18 +161,12 @@ local function darken(rgb, factor)
 end
 
 local function set_highlights()
-	local bg = get_bg('NormalNC')
-	if bg == nil then
-		bg = get_bg('Normal')
-	end
+	local bg = get_bg('NormalNC') or get_bg('Normal')
 	vim.api.nvim_set_hl(0, 'SplitPadNC', { bg = bg })
 
 	-- Transparent background: nothing to darken, so the ~ area keeps EndOfBuffer's look.
 	local eob = vim.api.nvim_get_hl(0, { name = 'EndOfBuffer', link = false })
-	local eob_bg = eob.bg
-	if bg ~= nil then
-		eob_bg = darken(bg, config.eob_darken)
-	end
+	local eob_bg = (bg and darken(bg, config.eob_darken) or eob.bg)
 	vim.api.nvim_set_hl(0, 'SplitPadEob', { fg = eob.fg, bg = eob_bg })
 end
 
@@ -221,14 +209,12 @@ end
 
 function M.toggle()
 	enabled = not enabled
-	local state = 'off'
 	if enabled then
-		state = 'on'
 		refresh()
 	else
 		clear_all()
 	end
-	vim.notify(SRC .. 'split padding ' .. state)
+	vim.notify(SRC .. 'split padding ' .. (enabled and 'on' or 'off'))
 end
 
 ---@param opts? genja-splitpad.Opts
