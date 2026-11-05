@@ -22,7 +22,7 @@ the vertical separator. The column disappears when the window gains focus.
 
 ```lua
 {
-	'USERNAME/genja-splitpad.nvim',
+	'tox2ik/genja-splitpad.nvim',
 	event = 'VeryLazy',
 	keys = {
 		{ '<leader>tp', function() require('genja-splitpad').toggle() end, desc = 'Toggle: split padding' },
